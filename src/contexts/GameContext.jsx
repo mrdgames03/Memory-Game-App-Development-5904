@@ -164,12 +164,20 @@ export function GameProvider({ children }) {
     };
 
     const { pairs } = gridSizes[difficulty];
-    const selectedImages = state.gameImages[difficulty].slice(0, pairs);
+    const availableImages = state.gameImages[difficulty] || [];
+    
+    // Ensure we have enough images
+    if (availableImages.length < pairs) {
+      console.error(`Not enough images for ${difficulty} difficulty. Need ${pairs}, have ${availableImages.length}`);
+      return;
+    }
+
+    const selectedImages = availableImages.slice(0, pairs);
 
     // Create pairs
     const cardPairs = selectedImages.flatMap((image, index) => [
-      { id: index * 2, image: image.url, pairId: index },
-      { id: index * 2 + 1, image: image.url, pairId: index }
+      { id: `${index}_1`, image: image.url, pairId: index },
+      { id: `${index}_2`, image: image.url, pairId: index }
     ]);
 
     // Shuffle cards
@@ -189,7 +197,7 @@ export function GameProvider({ children }) {
         state.cards.find(card => card.id === id)
       );
 
-      if (firstCard.pairId === secondCard.pairId) {
+      if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
         dispatch({ type: 'MATCH_CARDS', payload: state.flippedCards });
       } else {
         dispatch({ type: 'INCREMENT_MOVES' });

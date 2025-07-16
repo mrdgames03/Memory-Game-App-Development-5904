@@ -8,21 +8,21 @@ import GameCompleteModal from './GameCompleteModal';
 
 function GameScreen() {
   const navigate = useNavigate();
-  const { 
-    cards, 
-    flippedCards, 
-    matchedCards, 
-    moves, 
-    score, 
-    timeElapsed, 
-    gameStatus, 
-    difficulty, 
+  const {
+    cards,
+    flippedCards,
+    matchedCards,
+    moves,
+    score,
+    timeElapsed,
+    gameStatus,
+    difficulty,
     playerName,
-    dispatch, 
-    generateCards, 
-    checkMatch 
+    gameImages,
+    dispatch,
+    generateCards,
+    checkMatch
   } = useGame();
-
   const [timer, setTimer] = useState(null);
 
   useEffect(() => {
@@ -31,17 +31,36 @@ function GameScreen() {
       return;
     }
 
+    // Check if we have enough images for the selected difficulty
+    const difficultyRequirements = {
+      easy: 6,
+      medium: 8,
+      hard: 12
+    };
+
+    const requiredImages = difficultyRequirements[difficulty];
+    const availableImages = gameImages[difficulty]?.length || 0;
+
+    if (availableImages < requiredImages) {
+      alert(`Not enough images for ${difficulty} difficulty. Need ${requiredImages}, have ${availableImages}. Please add more images in the admin panel.`);
+      navigate('/');
+      return;
+    }
+
+    // Generate cards for the game
     generateCards(difficulty);
     dispatch({ type: 'SET_GAME_STATUS', payload: 'playing' });
-    
+
+    // Start the timer
     const interval = setInterval(() => {
       dispatch({ type: 'SET_TIME', payload: timeElapsed + 1 });
     }, 1000);
-    
     setTimer(interval);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [difficulty, playerName, navigate, generateCards, dispatch, gameImages]);
 
   useEffect(() => {
     if (flippedCards.length === 2) {
@@ -49,14 +68,14 @@ function GameScreen() {
         checkMatch();
       }, 500);
     }
-  }, [flippedCards]);
+  }, [flippedCards, checkMatch]);
 
   useEffect(() => {
     if (cards.length > 0 && matchedCards.length === cards.length) {
       dispatch({ type: 'SET_GAME_STATUS', payload: 'completed' });
       if (timer) clearInterval(timer);
     }
-  }, [matchedCards, cards]);
+  }, [matchedCards, cards, timer, dispatch]);
 
   const getGridClass = () => {
     switch (difficulty) {
@@ -67,9 +86,21 @@ function GameScreen() {
     }
   };
 
+  // Show loading state while cards are being generated
+  if (!cards || cards.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading game...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen p-4">
-      <GameHeader 
+      <GameHeader
         playerName={playerName}
         moves={moves}
         score={score}
