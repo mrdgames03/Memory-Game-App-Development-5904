@@ -5,6 +5,7 @@ import GameScreen from './components/GameScreen';
 import MenuScreen from './components/MenuScreen';
 import LeaderboardScreen from './components/LeaderboardScreen';
 import AdminPanel from './components/AdminPanel';
+import VersionFooter from './components/VersionFooter';
 import './App.css';
 
 // Secret code for admin access - you can change this to any string you prefer
@@ -20,18 +21,13 @@ function App() {
             <Route path="/game" element={<GameScreen />} />
             <Route path="/leaderboard" element={<LeaderboardScreen />} />
             {/* Secret admin route */}
-            <Route 
-              path={`/admin/${ADMIN_SECRET}`} 
-              element={<AdminPanel />} 
-            />
+            <Route path={`/admin/${ADMIN_SECRET}`} element={<AdminPanel />} />
             {/* Redirect any other /admin/* paths to home */}
-            <Route 
-              path="/admin/*" 
-              element={<Navigate to="/" replace />} 
-            />
+            <Route path="/admin/*" element={<Navigate to="/" replace />} />
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <VersionFooter />
         </div>
       </Router>
     </GameProvider>
